@@ -8,7 +8,7 @@ class MainApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Binary Time Machine")
-        self.root.geometry("800x600")
+        self.root.geometry("530x380")
 
         # 1. Daten laden
         self.settings = SettingsManager()
