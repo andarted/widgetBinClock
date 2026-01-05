@@ -14,7 +14,7 @@ class MainApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Binary Time Machine")
-        self.root.geometry("800x500")
+        self.root.geometry("800x700")
         self.root.configure(bg=BG_COLOR)
 
         self.settings = SettingsManager()
@@ -63,6 +63,7 @@ class MainApp:
         self.profile_view.pack_forget()
         # Editor zeigen
         self.editor_view.pack(fill=tk.BOTH, expand=True)
+        self.root.update_idletasks()
 
     def show_palette(self):
         # Uhr stoppen (CPU sparen) & Uhr + Editor + Layout + Profile weg
@@ -73,6 +74,7 @@ class MainApp:
         self.profile_view.pack_forget()
         # Palette zeigen
         self.palette_view.pack(fill=tk.BOTH, expand=True)
+        self.root.update_idletasks()
 
     def show_layout(self):
         # Uhr stoppen (CPU sparen) & Uhr + Editor + Palette + Profiles weg
@@ -83,6 +85,7 @@ class MainApp:
         self.profile_view.pack_forget()
         # Layout zeigen
         self.layout_view.pack(fill=tk.BOTH, expand=True)
+        self.root.update_idletasks()
 
     def show_profiles(self):
         # Uhr stoppen (CPU sparen) & Uhr + Editor + Palette + Layout + Dashboard weg
@@ -93,8 +96,9 @@ class MainApp:
         self.layout_view.pack_forget()
         # Profile zeigen
         self.profile_view.pack(fill=tk.BOTH, expand=True)
+        self.root.update_idletasks()
 
-        # WICHTIG: Vorschauen aktualisieren!
+        # Vorschauen aktualisieren!
         self.profile_view.update_previews()
 
 
@@ -107,6 +111,7 @@ class MainApp:
         # Uhr zeigen und starten
         self.clock_view.pack(fill=tk.BOTH, expand=True)
         self.clock_view.start()
+        self.root.update_idletasks()
 
 
 if __name__ == "__main__":

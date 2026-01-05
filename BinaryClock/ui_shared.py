@@ -10,9 +10,9 @@ UI_FONT_SMALL = ("Futura", 9)
 
 GROUP_COLORS = {
     0: "#FF5733",  # Rot
-    1: "#33FF57",  # Grün
-    2: "#3357FF",  # Blau
-    3: "#F333FF"  # Magenta
+    1: "#FFC800",  # Gelb
+    2: "#00FCFF",  # Cyan
+    3: "#3357FF"   # Blau
 }
 
 class FlatButton(tk.Label):

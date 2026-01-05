@@ -1,12 +1,9 @@
 import tkinter as tk
-from ui_shared import BG_COLOR
+from ui_shared import BG_COLOR, GROUP_COLORS  # <--- NEU: GROUP_COLORS importieren
 
 
 class MiniGridSelector(tk.Frame):
     def __init__(self, parent, settings_manager, title, grid_type, color_theme, on_click_callback):
-        """
-        grid_type: "profile", "nibble", "layout", "palette"
-        """
         super().__init__(parent, bg=BG_COLOR, bd=1, relief="solid")
         self.settings_manager = settings_manager
         self.grid_type = grid_type
@@ -19,12 +16,10 @@ class MiniGridSelector(tk.Frame):
         self.setup_ui(title)
 
     def setup_ui(self, title):
-        # Header
         header = tk.Label(self, text=title, bg=BG_COLOR, fg=self.color_theme,
                           font=("Futura", 10, "bold"), pady=5)
         header.pack(side=tk.TOP, fill=tk.X)
 
-        # Grid Container
         grid_frame = tk.Frame(self, bg=BG_COLOR)
         grid_frame.pack(expand=True, fill=tk.BOTH, padx=5, pady=5)
 
@@ -32,12 +27,10 @@ class MiniGridSelector(tk.Frame):
             r = i // 4
             c = i % 4
 
-            # Mini Canvas
             cv = tk.Canvas(grid_frame, width=40, height=40, bg="#303030",
                            highlightthickness=1, highlightbackground="#444444")
             cv.grid(row=r, column=c, padx=2, pady=2, sticky="nsew")
 
-            # Klick Event
             cv.bind("<Button-1>", lambda event, idx=i: self.on_slot_click(idx))
 
             grid_frame.grid_columnconfigure(c, weight=1)
@@ -66,12 +59,10 @@ class MiniGridSelector(tk.Frame):
         for i in range(16):
             self.draw_slot_content(i)
 
-    def draw_slot_content(self, slot_id, force_redraw=False):
+    def draw_slot_content(self, slot_id):
         cv = self.canvases[slot_id]
         cv.delete("all")
 
-        # Wichtig: update_idletasks sorgt dafür, dass width/height korrekt sind
-        # (Manchmal sind sie beim ersten Start noch 1)
         w = int(cv.cget("width"))
         h = int(cv.cget("height"))
         if w < 10: w = 40
@@ -99,7 +90,9 @@ class MiniGridSelector(tk.Frame):
                 if val != -1:
                     c, r = i % 4, i // 4
                     x, y = c * cell_w, r * cell_h
-                    cv.create_rectangle(x, y, x + cell_w, y + cell_h, fill="#AAAAAA", outline="")
+                    # FIX 4: Echte Gruppenfarben statt Grau!
+                    color = GROUP_COLORS.get(val, "#AAAAAA")
+                    cv.create_rectangle(x, y, x + cell_w, y + cell_h, fill=color, outline="")
         except:
             pass
 
@@ -109,7 +102,15 @@ class MiniGridSelector(tk.Frame):
             cell_w, cell_h = w / 4, h / 4
             for i in range(16):
                 if i < len(colors):
-                    c, r = i % 4, i // 4
+                    # FIX 2: Spiegelung der Vorschau (H1 oben, M0 unten; MSB links)
+                    # i=0 (Bit 0) -> Soll unten rechts sein (r=3, c=3)
+                    # i=15 (Bit 15) -> Soll oben links sein (r=0, c=0)
+
+                    # Zeile: Umkehren (3 - ...)
+                    r = 3 - (i // 4)
+                    # Spalte: Umkehren (3 - ...)
+                    c = 3 - (i % 4)
+
                     x, y = c * cell_w, r * cell_h
                     cv.create_rectangle(x, y, x + cell_w, y + cell_h, fill=colors[i], outline="")
         except:

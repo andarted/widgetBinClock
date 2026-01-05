@@ -21,25 +21,25 @@ class ProfileEditor(tk.Frame):
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
 
-        # 1. PROFILES (Master) - Oben Links
-        self.grid_profiles = MiniGridSelector(self, self.settings_manager,
-                                              "PROFILES (Master)", "profile", "#FFFFFF", self.on_profile_click)
-        self.grid_profiles.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
-        # 2. NIBBLES - Oben Rechts
+        # 1. NIBBLES - Oben Links (0, 0)
         self.grid_nibbles = MiniGridSelector(self, self.settings_manager,
                                              "NIBBLE DESIGNS", "nibble", "#FF5733", self.on_nibble_click)
-        self.grid_nibbles.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+        self.grid_nibbles.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
-        # 3. LAYOUTS - Unten Links
+        # 2. PALETTES - Oben Rechts (0, 1)
+        self.grid_palettes = MiniGridSelector(self, self.settings_manager,
+                                              "PALETTES", "palette", "#44AA44", self.on_palette_click)
+        self.grid_palettes.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+
+        # 3. LAYOUTS - Unten Links (1, 0)
         self.grid_layouts = MiniGridSelector(self, self.settings_manager,
                                              "LAYOUTS", "layout", "#3357FF", self.on_layout_click)
         self.grid_layouts.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
 
-        # 4. PALETTES - Unten Rechts
-        self.grid_palettes = MiniGridSelector(self, self.settings_manager,
-                                              "PALETTES", "palette", "#44AA44", self.on_palette_click)
-        self.grid_palettes.grid(row=1, column=1, sticky="nsew", padx=5, pady=5)
+        # 4. PROFILES (Master) - Unten Rechts (1, 1)
+        self.grid_profiles = MiniGridSelector(self, self.settings_manager,
+                                              "PROFILES (Master)", "profile", "#FFFFFF", self.on_profile_click)
+        self.grid_profiles.grid(row=1, column=1, sticky="nsew", padx=5, pady=5)
 
     def refresh_selection(self):
         """Liest das aktuelle Profil aus den Daten und setzt die Markierungen"""
