@@ -1,86 +1,16 @@
 import tkinter as tk
+from ui_shared import FlatButton, BG_COLOR, GROUP_COLORS, TEXT_COLOR, UI_FONT, UI_FONT_SMALL
 
 # --- KONFIGURATION ---
 CELL_SIZE = 40
 GAP_SIZE = 10
+
 # Wir berechnen die Canvas-Größe dynamisch basierend auf dem Grid
 # 4 Zellen + 3 Gaps + etwas Rand (2 * 20px)
 GRID_PIXEL_WIDTH = (4 * CELL_SIZE) + (3 * GAP_SIZE)
 CANVAS_SIZE = GRID_PIXEL_WIDTH + 40
 
-# Farben & Styles
-BG_COLOR = "#202020"
-TEXT_COLOR = "#FFFFFF"
-UI_FONT = ("Futura", 10, "bold")
-UI_FONT_SMALL = ("Futura", 9)
-
-# Farben für die 4 Gruppen
-GROUP_COLORS = {
-    0: "#FF5733",  # Rot
-    1: "#33FF57",  # Grün
-    2: "#3357FF",  # Blau
-    3: "#F333FF"  # Magenta
-}
 GROUP_LIMITS = {0: 1, 1: 2, 2: 4, 3: 8}
-
-
-class FlatButton(tk.Label):
-    """
-    Ein Button ohne Betriebssystem-Style.
-    Fix gegen Springen: Der Border ist immer da (bd=2), wird aber eingefärbt.
-    """
-
-    def __init__(self, parent, text, command, bg, fg="white", width=5):
-        # bd=2 reserviert den Platz für den Rahmen dauerhaft
-        super().__init__(parent, text=text, bg=bg, fg=fg, font=UI_FONT,
-                         width=width, cursor="hand2", bd=2, relief="flat")
-        self.command = command
-        self.default_bg = bg
-        self.hover_bg = self.adjust_color_lightness(bg, 1.2)
-
-        # Innenabstand
-        self.config(pady=2)
-
-        # Events
-        self.bind("<Button-1>", self.on_click)
-        self.bind("<Enter>", self.on_enter)
-        self.bind("<Leave>", self.on_leave)
-
-    def on_click(self, event):
-        if self.command:
-            self.command()
-
-    def on_enter(self, event):
-        self.config(bg=self.hover_bg)
-
-    def on_leave(self, event):
-        self.config(bg=self.default_bg)
-
-    def set_active(self, active):
-        """
-        Statt die Geometrie zu ändern (relief), ändern wir nur die Farbe des Rahmens.
-        Damit springt nichts mehr.
-        """
-        if active:
-            # Aktiv: Rahmen wird hell/weiß (oder Kontrastfarbe)
-            self.config(relief="solid")
-        else:
-            # Inaktiv: Rahmen bleibt, aber 'flat' (sieht aus wie keiner)
-            # WICHTIG: Wir lassen bd=2, aber relief='flat' sorgt dafür, dass
-            # der Rahmenplatz reserviert bleibt, aber nicht gezeichnet wird (bzw. unsichtbar).
-            self.config(relief="flat")
-
-    def adjust_color_lightness(self, color_hex, factor):
-        try:
-            color_hex = color_hex.lstrip('#')
-            r, g, b = tuple(int(color_hex[i:i + 2], 16) for i in (0, 2, 4))
-            r = min(255, int(r * factor))
-            g = min(255, int(g * factor))
-            b = min(255, int(b * factor))
-            return f"#{r:02x}{g:02x}{b:02x}"
-        except:
-            return color_hex
-
 
 class NibbleEditor(tk.Frame):
     def __init__(self, parent, settings_manager):
