@@ -1,9 +1,9 @@
-# Datei: ui_setting_editor.py
+# Datei: ui_profile_editor.py
 import tkinter as tk
 from ui_shared import FlatButton, BG_COLOR, TEXT_COLOR, UI_FONT, UI_FONT_SMALL
 
 
-class SettingEditor(tk.Frame):
+class ProfileEditor(tk.Frame):
     def __init__(self, parent, settings_manager):
         super().__init__(parent, bg=BG_COLOR)
         self.settings_manager = settings_manager

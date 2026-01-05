@@ -40,10 +40,10 @@ class SettingsManager:
             "colors": default_colors
         }
 
-    def create_default_setting(self, index):
+    def create_default_profile(self, index):
         return {
             "id": index,
-            "name": f"Setting {index}",
+            "name": f"Profile {index}",
             "layoutId": 0,
             "paletteId": 0,
             "nibbleGridId": 0
@@ -53,14 +53,13 @@ class SettingsManager:
         # Hier bauen wir das Dictionary zusammen
         return {
             "version": "0.1",
-            "active_settingId": 0,
+            "active_profileId": 0,
             "library": {
                 "nibbleGrids": [self.create_default_nibble(i) for i in range(16)],
                 "layoutGrids": [self.create_default_layout(i) for i in range(16)],
                 "palettes": [self.create_default_palette(i) for i in range(16)],
-                "profiles": [self.create_default_setting(i) for i in range(16)]
             },
-            "settings": [self.create_default_setting(i) for i in range(16)]
+            "profiles": [self.create_default_profile(i) for i in range(16)]
         }
 
     def load_settings(self):

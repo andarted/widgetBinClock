@@ -6,7 +6,7 @@ from settings_manager import SettingsManager
 from ui_nibble_editor import NibbleEditor
 from ui_clock_display import ClockDisplay
 from ui_layout_editor import LayoutEditor
-from ui_setting_editor import SettingEditor
+from ui_profile_editor import ProfileEditor
 from ui_shared import FlatButton, BG_COLOR, BG_OFF_COLOR, BG_BUTTON_COLOR
 
 
@@ -48,7 +48,7 @@ class MainApp:
         self.editor_view = NibbleEditor(self.content_area, self.settings)
         self.palette_view = PaletteEditor(self.content_area, self.settings)
         self.layout_view = LayoutEditor(self.content_area, self.settings)
-        self.profile_view = SettingEditor(self.content_area, self.settings)
+        self.profile_view = ProfileEditor(self.content_area, self.settings)
         self.clock_view = ClockDisplay(self.content_area, self.settings)
 
         # Standard-Ansicht

@@ -62,16 +62,16 @@ class ClockDisplay(tk.Frame):
         # --- DATEN LADEN (Aktuell alles Slot 0) ---
         try:
             # 1. Welches Setting ist aktiv?
-            active_id = self.settings_manager.data.get("active_settingId", 0)
+            active_id = self.settings_manager.data.get("active_profileId", 0)
             # Sicherheitscheck, falls ID out of range
-            if active_id >= len(self.settings_manager.data["settings"]): active_id = 0
+            if active_id >= len(self.settings_manager.data["profiles"]): active_id = 0
 
-            current_setting = self.settings_manager.data["settings"][active_id]
+            current_profile = self.settings_manager.data["profiles"][active_id]
 
             # 2. Die IDs aus dem Setting holen
-            nibble_id = current_setting.get("nibbleGridId", 0)
-            layout_id = current_setting.get("layoutId", 0)
-            palette_id = current_setting.get("paletteId", 0)
+            nibble_id = current_profile.get("nibbleGridId", 0)
+            layout_id = current_profile.get("layoutId", 0)
+            palette_id = current_profile.get("paletteId", 0)
 
             # 3. Die eigentlichen Daten anhand der IDs laden
 
