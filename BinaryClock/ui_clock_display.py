@@ -64,47 +64,54 @@ class ClockDisplay(tk.Frame):
     def render_clock(self, v16):
         self.canvas.delete("all")
 
-        # Wir laden das Design aus Slot 0 (Hardcoded für den Anfang)
-        # Später kommt das aus "active_setting"
-        try:
-            design_data = self.settings_manager.data["library"]["nibbleGrids"][0]["cells"]
-            # Umwandeln in 2D Grid (4x4)
-            grid = self.list_to_grid(design_data)
-        except:
-            return  # Daten noch nicht bereit
+        # 1. Design laden (Slot 0 - Hardcoded vorerst)
+        design_cells = self.settings_manager.data["library"]["nibbleGrids"][0]["cells"]
+        grid_design = self.list_to_grid(design_cells)
 
-        # Wir haben 4 Nibbles im v16 Wert:
-        # v16 = [Nibble 3][Nibble 2][Nibble 1][Nibble 0]
-        #         (Bits 12-15) (8-11)   (4-7)    (0-3)
+        # 2. Layout laden (Slot 0 - Hardcoded vorerst)
+        layout_placements = self.settings_manager.data["library"]["layoutGrids"][0].get("placements", [])
 
-        # Positionierung: Wir machen 2x2 Anordnung oder 1x4
-        # Lass uns 1x4 machen (nebeneinander), zentriert.
+        # Wenn Layout leer ist, nix malen (oder Fallback)
+        if not layout_placements:
+            return
 
+        # 3. Zentrierung berechnen
+        # Wir müssen wissen, wie groß das Gesamt-Layout ist (4x4 Slots)
+        # Ein Slot im Layout = Ein ganzes Nibble-Grid (4x4 Zellen)
+
+        # Pixelgröße eines Nibbles (so wie wir es zeichnen)
+        # Achtung: Clock nutzt andere CELL_SIZE als Editor!
         nibble_pixel_size = (4 * CELL_SIZE) + (3 * GAP_SIZE)
-        total_width = (4 * nibble_pixel_size) + (3 * NIBBLE_GAP)
 
-        start_x = (self.canvas.winfo_width() - total_width) // 2
-        start_y = (self.canvas.winfo_height() - nibble_pixel_size) // 2
+        # Wir gehen davon aus, dass das Layout-Grid auch Gaps hat?
+        # Sagen wir, zwischen den Layout-Slots ist auch ein Abstand (NIBBLE_GAP)
+        layout_w = 4 * nibble_pixel_size + 3 * NIBBLE_GAP
+        layout_h = 4 * nibble_pixel_size + 3 * NIBBLE_GAP
 
-        # Falls Fenster noch nicht aufgebaut, Standard nehmen
-        if start_x < 0: start_x = 20
-        if start_y < 0: start_y = 50
+        start_x = (self.canvas.winfo_width() - layout_w) // 2
+        start_y = (self.canvas.winfo_height() - layout_h) // 2
+        if start_x < 0: start_x = 10
+        if start_y < 0: start_y = 10
 
-        # Die 4 Nibbles zeichnen (MSB links -> Nibble 3, 2, 1, 0)
-        for i in range(4):
-            nibble_index = 3 - i  # 3, 2, 1, 0
+        # 4. Über alle Placements iterieren
+        for p in layout_placements:
+            # Welches Zeit-Teil ist das? (3=H1, 2=H0, etc.)
+            nibble_id = p["nibbleId"]
 
-            # Wert dieses Nibbles extrahieren (0-15)
-            # Verschieben und maskieren
-            shift_amount = nibble_index * 4
-            nibble_val = (v16 >> shift_amount) & 0xF
+            # Wo soll es hin? (0-3 im 4x4 Layout Grid)
+            grid_x = p["position"]["x"]
+            grid_y = p["position"]["y"]
 
-            # X-Position für dieses Nibble
-            pos_x = start_x + i * (nibble_pixel_size + NIBBLE_GAP)
-            pos_y = start_y
+            # Wert extrahieren aus der Uhrzeit
+            shift_amount = nibble_id * 4
+            val = (v16 >> shift_amount) & 0xF
 
-            # Zeichne dieses Nibble!
-            self.draw_single_nibble(pos_x, pos_y, nibble_val, grid)
+            # Pixel-Position berechnen
+            px = start_x + grid_x * (nibble_pixel_size + NIBBLE_GAP)
+            py = start_y + grid_y * (nibble_pixel_size + NIBBLE_GAP)
+
+            # Zeichnen
+            self.draw_single_nibble(px, py, val, grid_design)
 
     def draw_single_nibble(self, ox, oy, val, grid):
         """
