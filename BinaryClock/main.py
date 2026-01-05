@@ -85,7 +85,7 @@ class MainApp:
         self.layout_view.pack(fill=tk.BOTH, expand=True)
 
     def show_profiles(self):
-        # Uhr stoppen (CPU sparen) & Uhr + Editor + Palette + Layout weg
+        # Uhr stoppen (CPU sparen) & Uhr + Editor + Palette + Layout + Dashboard weg
         self.clock_view.stop()
         self.clock_view.pack_forget()
         self.editor_view.pack_forget()
@@ -93,6 +93,10 @@ class MainApp:
         self.layout_view.pack_forget()
         # Profile zeigen
         self.profile_view.pack(fill=tk.BOTH, expand=True)
+
+        # WICHTIG: Vorschauen aktualisieren!
+        self.profile_view.update_previews()
+
 
     def show_clock(self):
         # Editor + Layout + Palette + Profiles weg
