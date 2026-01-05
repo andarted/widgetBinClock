@@ -61,18 +61,31 @@ class ClockDisplay(tk.Frame):
 
         # --- DATEN LADEN (Aktuell alles Slot 0) ---
         try:
-            # 1. Design (Formen)
-            design_cells = self.settings_manager.data["library"]["nibbleGrids"][0]["cells"]
+            # 1. Welches Setting ist aktiv?
+            active_id = self.settings_manager.data.get("active_settingId", 0)
+            # Sicherheitscheck, falls ID out of range
+            if active_id >= len(self.settings_manager.data["settings"]): active_id = 0
+
+            current_setting = self.settings_manager.data["settings"][active_id]
+
+            # 2. Die IDs aus dem Setting holen
+            nibble_id = current_setting.get("nibbleGridId", 0)
+            layout_id = current_setting.get("layoutId", 0)
+            palette_id = current_setting.get("paletteId", 0)
+
+            # 3. Die eigentlichen Daten anhand der IDs laden
+
+            # A) Design
+            design_cells = self.settings_manager.data["library"]["nibbleGrids"][nibble_id]["cells"]
             grid_design = self.list_to_grid(design_cells)
 
-            # 2. Layout (Positionen)
-            layout_placements = self.settings_manager.data["library"]["layoutGrids"][0].get("placements", [])
+            # B) Layout
+            layout_placements = self.settings_manager.data["library"]["layoutGrids"][layout_id].get("placements", [])
 
-            # 3. Palette (Farben) - NEU!
-            palette_data = self.settings_manager.data["library"]["palettes"][0]
+            # C) Palette
+            palette_data = self.settings_manager.data["library"]["palettes"][palette_id]
             palette_colors = palette_data.get("colors", ["#333333"] * 16)
 
-            # Fallback falls Palette kaputt
             if len(palette_colors) < 16: palette_colors = ["#333333"] * 16
 
         except Exception as e:
@@ -98,6 +111,11 @@ class ClockDisplay(tk.Frame):
             grid_x = p["position"]["x"]
             grid_y = p["position"]["y"]
 
+            # Mirror Flags lesen
+            mirror_opts = p.get("mirror", {"x": False, "y": False})
+            mirror_x = mirror_opts.get("x", False)
+            mirror_y = mirror_opts.get("y", False)
+
             # Wert extrahieren
             shift_amount = nibble_id * 4
             val = (v16 >> shift_amount) & 0xF
@@ -106,8 +124,33 @@ class ClockDisplay(tk.Frame):
             px = start_x + grid_x * (nibble_pixel_size + NIBBLE_GAP)
             py = start_y + grid_y * (nibble_pixel_size + NIBBLE_GAP)
 
+            # Grid transformieren (falls nötig)
+            current_grid_design = grid_design  # Kopie der Referenz
+            if mirror_x or mirror_y:
+                current_grid_design = self.transform_grid(grid_design, mirror_x, mirror_y)
+
             # Zeichnen - Jetzt mit Palette und nibble_id!
-            self.draw_single_nibble(px, py, val, grid_design, nibble_id, palette_colors)
+            self.draw_single_nibble(px, py, val, current_grid_design, nibble_id, palette_colors)
+
+    def transform_grid(self, original_grid, mx, my):
+        """
+        Erstellt eine gespiegelte Kopie des 4x4 Grids.
+        Das ist viel einfacher als Koordinaten-Mathematik beim Zeichnen!
+        """
+        # 1. Tiefe Kopie erstellen (damit wir das Original nicht ändern)
+        # Ein einfaches List Comprehension reicht hier, da wir Strings/Ints spiegeln
+        new_grid = [row[:] for row in original_grid]
+
+        # 2. Horizontal spiegeln (Zeilen umkehren)
+        if mx:
+            for r in range(4):
+                new_grid[r] = new_grid[r][::-1]
+
+        # 3. Vertikal spiegeln (Reihenfolge der Zeilen umkehren)
+        if my:
+            new_grid = new_grid[::-1]
+
+        return new_grid
 
     def draw_single_nibble(self, ox, oy, val, grid, nibble_id, palette):
         """

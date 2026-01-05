@@ -6,6 +6,7 @@ from settings_manager import SettingsManager
 from ui_nibble_editor import NibbleEditor
 from ui_clock_display import ClockDisplay
 from ui_layout_editor import LayoutEditor
+from ui_setting_editor import SettingEditor
 from ui_shared import FlatButton, BG_COLOR, BG_OFF_COLOR, BG_BUTTON_COLOR
 
 
@@ -32,6 +33,9 @@ class MainApp:
             # Layout Editor Button
         FlatButton(nav_frame, text="Layout Editor", command=self.show_layout,
                    bg=BG_BUTTON_COLOR, width=12).pack(side=tk.LEFT, padx=5)
+            # Setting Editor Button
+        FlatButton(nav_frame, text="Profiles", command=self.show_profiles,
+                   bg=BG_BUTTON_COLOR, width=12).pack(side=tk.LEFT,padx=5)
             # Live Clock Button
         FlatButton(nav_frame, text="Live Clock", command=self.show_clock,
                    bg=BG_BUTTON_COLOR, width=12).pack(side=tk.LEFT, padx=5)
@@ -44,43 +48,58 @@ class MainApp:
         self.editor_view = NibbleEditor(self.content_area, self.settings)
         self.palette_view = PaletteEditor(self.content_area, self.settings)
         self.layout_view = LayoutEditor(self.content_area, self.settings)
+        self.profile_view = SettingEditor(self.content_area, self.settings)
         self.clock_view = ClockDisplay(self.content_area, self.settings)
 
         # Standard-Ansicht
         self.show_clock()
 
     def show_editor(self):
-        # Uhr stoppen (CPU sparen) & Uhr + Layout + Palette weg
+        # Uhr stoppen (CPU sparen) & Uhr + Layout + Palette + Profile weg
         self.clock_view.stop()
         self.clock_view.pack_forget()
         self.layout_view.pack_forget()
         self.palette_view.pack_forget()
+        self.profile_view.pack_forget()
         # Editor zeigen
         self.editor_view.pack(fill=tk.BOTH, expand=True)
 
     def show_palette(self):
-        # Uhr stoppen (CPU sparen) & Uhr + Layout + Editor weg
+        # Uhr stoppen (CPU sparen) & Uhr + Editor + Layout + Profile weg
         self.clock_view.stop()
         self.clock_view.pack_forget()
         self.layout_view.pack_forget()
         self.editor_view.pack_forget()
+        self.profile_view.pack_forget()
         # Palette zeigen
         self.palette_view.pack(fill=tk.BOTH, expand=True)
 
     def show_layout(self):
-        # Uhr stoppen (CPU sparen) & Uhr + Editor + Palette weg
+        # Uhr stoppen (CPU sparen) & Uhr + Editor + Palette + Profiles weg
         self.clock_view.stop()
         self.clock_view.pack_forget()
         self.editor_view.pack_forget()
         self.palette_view.pack_forget()
+        self.profile_view.pack_forget()
         # Layout zeigen
         self.layout_view.pack(fill=tk.BOTH, expand=True)
 
+    def show_profiles(self):
+        # Uhr stoppen (CPU sparen) & Uhr + Editor + Palette + Layout weg
+        self.clock_view.stop()
+        self.clock_view.pack_forget()
+        self.editor_view.pack_forget()
+        self.palette_view.pack_forget()
+        self.layout_view.pack_forget()
+        # Profile zeigen
+        self.profile_view.pack(fill=tk.BOTH, expand=True)
+
     def show_clock(self):
-        # Editor + Layout + Palette weg
+        # Editor + Layout + Palette + Profiles weg
         self.editor_view.pack_forget()
         self.layout_view.pack_forget()
         self.palette_view.pack_forget()
+        self.profile_view.pack_forget()
         # Uhr zeigen und starten
         self.clock_view.pack(fill=tk.BOTH, expand=True)
         self.clock_view.start()

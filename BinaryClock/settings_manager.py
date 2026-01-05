@@ -45,7 +45,8 @@ class SettingsManager:
             "id": index,
             "name": f"Setting {index}",
             "layoutId": 0,
-            "paletteId": 0
+            "paletteId": 0,
+            "nibbleGridId": 0
         }
 
     def get_defaults(self):
@@ -56,7 +57,8 @@ class SettingsManager:
             "library": {
                 "nibbleGrids": [self.create_default_nibble(i) for i in range(16)],
                 "layoutGrids": [self.create_default_layout(i) for i in range(16)],
-                "palettes": [self.create_default_palette(i) for i in range(16)]
+                "palettes": [self.create_default_palette(i) for i in range(16)],
+                "profiles": [self.create_default_setting(i) for i in range(16)]
             },
             "settings": [self.create_default_setting(i) for i in range(16)]
         }
