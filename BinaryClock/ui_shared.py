@@ -2,6 +2,8 @@ import tkinter as tk
 
 # --- GLOBALE UI KONSTANTEN ---
 BG_COLOR = "#202020"
+BG_OFF_COLOR = "#303030"
+BG_BUTTON_COLOR = "#505050"
 TEXT_COLOR = "#FFFFFF"
 UI_FONT = ("Futura", 10, "bold")
 UI_FONT_SMALL = ("Futura", 9)

@@ -1,3 +1,4 @@
+# Datei: ui_nibble_editor.py
 import tkinter as tk
 from ui_shared import FlatButton, BG_COLOR, GROUP_COLORS, TEXT_COLOR, UI_FONT, UI_FONT_SMALL
 
@@ -30,7 +31,7 @@ class NibbleEditor(tk.Frame):
         self.fill_corners = tk.BooleanVar(value=True)
 
         self.setup_ui()
-        self.redraw_canvas()
+        self.load_current_slot() # (load_current_slot() ruft am ende noch redraw_canvas() auf)
 
     def setup_ui(self):
         # --- TOOLBAR ---

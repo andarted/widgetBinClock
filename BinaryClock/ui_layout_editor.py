@@ -1,3 +1,4 @@
+# Datei: ui_layout_editor.py
 import tkinter as tk
 from ui_shared import FlatButton, BG_COLOR, TEXT_COLOR, UI_FONT, UI_FONT_SMALL
 
@@ -34,7 +35,7 @@ class LayoutEditor(tk.Frame):
         self.current_token_id = 3  # Start mit H1
 
         self.setup_ui()
-        self.redraw_canvas()
+        self.load_current_slot() # (load_current_slot() ruft am ende noch redraw_canvas() auf)
 
     def setup_ui(self):
         # --- TOOLBAR ---

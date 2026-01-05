@@ -1,9 +1,12 @@
+# Datei: main.py
 import tkinter as tk
+
+from ui_palette_editor import PaletteEditor
 from settings_manager import SettingsManager
 from ui_nibble_editor import NibbleEditor
 from ui_clock_display import ClockDisplay
 from ui_layout_editor import LayoutEditor
-from ui_shared import FlatButton, BG_COLOR
+from ui_shared import FlatButton, BG_COLOR, BG_OFF_COLOR, BG_BUTTON_COLOR
 
 
 class MainApp:
@@ -16,19 +19,22 @@ class MainApp:
         self.settings = SettingsManager()
 
         # --- NAVIGATION ---
-        nav_frame = tk.Frame(self.root, bg="#303030", pady=5)
+        nav_frame = tk.Frame(self.root, bg=BG_OFF_COLOR, pady=5)
         nav_frame.pack(side=tk.TOP, fill=tk.X)
 
         # NAV Buttons (Kopfzeile)
             # Design Editor Button
-        FlatButton(nav_frame, text="Design Editor", command=self.show_editor,
-                   bg="#505050", width=12).pack(side=tk.LEFT, padx=5)
+        FlatButton(nav_frame, text="Nibble Editor", command=self.show_editor,
+                   bg=BG_BUTTON_COLOR, width=12).pack(side=tk.LEFT, padx=5)
+            # Palette Editor Button
+        FlatButton(nav_frame, text="Palette Editor", command=self.show_palette,
+                   bg=BG_BUTTON_COLOR, width=12).pack(side=tk.LEFT, padx=5)
             # Layout Editor Button
         FlatButton(nav_frame, text="Layout Editor", command=self.show_layout,
-                   bg="#505050", width=12).pack(side=tk.LEFT, padx=5)
+                   bg=BG_BUTTON_COLOR, width=12).pack(side=tk.LEFT, padx=5)
             # Live Clock Button
         FlatButton(nav_frame, text="Live Clock", command=self.show_clock,
-                   bg="#505050", width=12).pack(side=tk.LEFT, padx=5)
+                   bg=BG_BUTTON_COLOR, width=12).pack(side=tk.LEFT, padx=5)
 
         # --- CONTENT AREA ---
         self.content_area = tk.Frame(self.root, bg=BG_COLOR)
@@ -36,36 +42,45 @@ class MainApp:
 
         # Instanzen erstellen (aber noch nicht packen)
         self.editor_view = NibbleEditor(self.content_area, self.settings)
+        self.palette_view = PaletteEditor(self.content_area, self.settings)
         self.layout_view = LayoutEditor(self.content_area, self.settings)
         self.clock_view = ClockDisplay(self.content_area, self.settings)
 
         # Standard-Ansicht
-        self.show_editor()
+        self.show_clock()
 
     def show_editor(self):
-        # Uhr stoppen (CPU sparen) & Layout weg
+        # Uhr stoppen (CPU sparen) & Uhr + Layout + Palette weg
         self.clock_view.stop()
         self.clock_view.pack_forget()
         self.layout_view.pack_forget()
-
+        self.palette_view.pack_forget()
         # Editor zeigen
         self.editor_view.pack(fill=tk.BOTH, expand=True)
 
+    def show_palette(self):
+        # Uhr stoppen (CPU sparen) & Uhr + Layout + Editor weg
+        self.clock_view.stop()
+        self.clock_view.pack_forget()
+        self.layout_view.pack_forget()
+        self.editor_view.pack_forget()
+        # Palette zeigen
+        self.palette_view.pack(fill=tk.BOTH, expand=True)
+
     def show_layout(self):
-        # Uhr stoppen (CPU sparen) & Editor weg
+        # Uhr stoppen (CPU sparen) & Uhr + Editor + Palette weg
         self.clock_view.stop()
         self.clock_view.pack_forget()
         self.editor_view.pack_forget()
-
+        self.palette_view.pack_forget()
         # Layout zeigen
         self.layout_view.pack(fill=tk.BOTH, expand=True)
 
-
     def show_clock(self):
-        # Editor weg & Layout weg
+        # Editor + Layout + Palette weg
         self.editor_view.pack_forget()
         self.layout_view.pack_forget()
-
+        self.palette_view.pack_forget()
         # Uhr zeigen und starten
         self.clock_view.pack(fill=tk.BOTH, expand=True)
         self.clock_view.start()
