@@ -54,65 +54,91 @@ class MainApp:
         # Standard-Ansicht
         self.show_clock()
 
+        # --- HOTKEYS ---
+        # Wir binden alle Tastenanschläge an unsere Funktion
+        self.root.bind("<Key>", self.handle_keypress)
+
+    def handle_keypress(self, event):
+        """
+        Globaler Hotkey Handler.
+        Erlaubt Profilwechsel mit 0-9 und a-f.
+        """
+        # WICHTIG: Wenn der User gerade in eine Spinbox tippt, ignorieren wir das Event!
+        # Sonst springt das Profil um, während man eine Zahl eingeben will.
+        if isinstance(event.widget, (tk.Entry, tk.Spinbox)):
+            return
+
+        key = event.char.lower()
+        new_profile_id = None
+
+        # 0-9
+        if key.isdigit():
+            new_profile_id = int(key)
+
+        # a-f (Hex für 10-15)
+        elif key in ['a', 'b', 'c', 'd', 'e', 'f']:
+            # Kleiner ASCII Hack: 'a' ist 97. 97 - 87 = 10.
+            new_profile_id = ord(key) - 87
+
+        # Wenn valide ID gefunden: Wechseln
+        if new_profile_id is not None and 0 <= new_profile_id <= 15:
+            self.activate_profile_via_hotkey(new_profile_id)
+
+    def activate_profile_via_hotkey(self, slot_id):
+        print(f"Hotkey: Switch to Profile {slot_id}")
+
+        # 1. Daten setzen
+        self.settings.data["active_profileId"] = slot_id
+        # Wir speichern hier NICHT auf die Festplatte (Performance & SSD schonen beim schnellen Wechseln)
+        # Erst beim Beenden oder expliziten Speichern wird geschrieben.
+        # Wenn du es unbedingt willst, kannst du self.settings.save_settings() einkommentieren.
+
+        # 2. Uhr sofort updaten (Force Redraw)
+        # Wir greifen direkt auf die Methode zu, auch wenn die View gerade nicht 'packed' ist.
+        # Aber visuell Sinn macht es nur, wenn wir die Clock sehen.
+        if self.clock_view.winfo_ismapped():
+            self.clock_view.force_redraw()
+
+        # 3. Falls das Dashboard offen ist, muss der Rahmen springen
+        if self.profile_view.winfo_ismapped():
+            self.profile_view.refresh_selection()
+
+    # --- SHOW METHODEN ---
     def show_editor(self):
-        # Uhr stoppen (CPU sparen) & Uhr + Layout + Palette + Profile weg
-        self.clock_view.stop()
-        self.clock_view.pack_forget()
-        self.layout_view.pack_forget()
-        self.palette_view.pack_forget()
-        self.profile_view.pack_forget()
-        # Editor zeigen
+        self._hide_all()
         self.editor_view.pack(fill=tk.BOTH, expand=True)
         self.root.update_idletasks()
 
     def show_palette(self):
-        # Uhr stoppen (CPU sparen) & Uhr + Editor + Layout + Profile weg
-        self.clock_view.stop()
-        self.clock_view.pack_forget()
-        self.layout_view.pack_forget()
-        self.editor_view.pack_forget()
-        self.profile_view.pack_forget()
-        # Palette zeigen
+        self._hide_all()
         self.palette_view.pack(fill=tk.BOTH, expand=True)
         self.root.update_idletasks()
 
     def show_layout(self):
-        # Uhr stoppen (CPU sparen) & Uhr + Editor + Palette + Profiles weg
-        self.clock_view.stop()
-        self.clock_view.pack_forget()
-        self.editor_view.pack_forget()
-        self.palette_view.pack_forget()
-        self.profile_view.pack_forget()
-        # Layout zeigen
+        self._hide_all()
         self.layout_view.pack(fill=tk.BOTH, expand=True)
         self.root.update_idletasks()
 
     def show_profiles(self):
-        # Uhr stoppen (CPU sparen) & Uhr + Editor + Palette + Layout + Dashboard weg
+        self._hide_all()
+        self.profile_view.pack(fill=tk.BOTH, expand=True)
+        self.profile_view.update_previews()
+        self.root.update_idletasks()
+
+    def show_clock(self):
+        self._hide_all()
+        self.clock_view.pack(fill=tk.BOTH, expand=True)
+        self.clock_view.start()
+        self.root.update_idletasks()
+
+    def _hide_all(self):
+        """Kleiner Helper um Code zu sparen"""
         self.clock_view.stop()
         self.clock_view.pack_forget()
         self.editor_view.pack_forget()
         self.palette_view.pack_forget()
         self.layout_view.pack_forget()
-        # Profile zeigen
-        self.profile_view.pack(fill=tk.BOTH, expand=True)
-        self.root.update_idletasks()
-
-        # Vorschauen aktualisieren!
-        self.profile_view.update_previews()
-
-
-    def show_clock(self):
-        # Editor + Layout + Palette + Profiles weg
-        self.editor_view.pack_forget()
-        self.layout_view.pack_forget()
-        self.palette_view.pack_forget()
         self.profile_view.pack_forget()
-        # Uhr zeigen und starten
-        self.clock_view.pack(fill=tk.BOTH, expand=True)
-        self.clock_view.start()
-        self.root.update_idletasks()
-
 
 if __name__ == "__main__":
     root = tk.Tk()

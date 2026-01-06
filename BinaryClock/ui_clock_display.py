@@ -219,6 +219,16 @@ class ClockDisplay(tk.Frame):
                         self.canvas.create_rectangle(cx1, cy1, cx1 + GAP_SIZE + 2, cy1 + GAP_SIZE + 2,
                                                      fill=get_color(g1), outline="", tags="clock_corner")
 
+        # In ClockDisplay Klasse einfügen:
+    def force_redraw(self):
+        # Zeit neu berechnen für instant feedback
+        ms_per_day = 86_400_000
+        total_units = 65536
+        ms_now = self.get_day_ms()
+        v16 = int((ms_now * total_units) / ms_per_day)
+
+        self.render_clock(v16)
+
     def list_to_grid(self, flat_list):
         new_grid = [[None for _ in range(4)] for _ in range(4)]
         for i, val in enumerate(flat_list):
