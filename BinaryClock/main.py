@@ -7,6 +7,7 @@ from ui_nibble_editor import NibbleEditor
 from ui_clock_display import ClockDisplay
 from ui_layout_editor import LayoutEditor
 from ui_profile_editor import ProfileEditor
+from ui_ff_clock import FFClockDisplay
 from ui_shared import FlatButton, BG_COLOR, BG_OFF_COLOR, BG_BUTTON_COLOR
 
 
@@ -14,7 +15,7 @@ class MainApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Binary Time Machine")
-        self.root.geometry("800x700")
+        self.root.geometry("900x550")  # Etwas breiter, damit alle Buttons passen
         self.root.configure(bg=BG_COLOR)
 
         self.settings = SettingsManager()
@@ -23,39 +24,41 @@ class MainApp:
         nav_frame = tk.Frame(self.root, bg=BG_OFF_COLOR, pady=5)
         nav_frame.pack(side=tk.TOP, fill=tk.X)
 
-        # NAV Buttons (Kopfzeile)
-            # Design Editor Button
+        # Die Standard-Buttons
         FlatButton(nav_frame, text="Nibble Editor", command=self.show_editor,
                    bg=BG_BUTTON_COLOR, width=12).pack(side=tk.LEFT, padx=5)
-            # Palette Editor Button
         FlatButton(nav_frame, text="Palette Editor", command=self.show_palette,
                    bg=BG_BUTTON_COLOR, width=12).pack(side=tk.LEFT, padx=5)
-            # Layout Editor Button
         FlatButton(nav_frame, text="Layout Editor", command=self.show_layout,
                    bg=BG_BUTTON_COLOR, width=12).pack(side=tk.LEFT, padx=5)
-            # Setting Editor Button
         FlatButton(nav_frame, text="Profiles", command=self.show_profiles,
-                   bg=BG_BUTTON_COLOR, width=12).pack(side=tk.LEFT,padx=5)
-            # Live Clock Button
+                   bg=BG_BUTTON_COLOR, width=12).pack(side=tk.LEFT, padx=5)
         FlatButton(nav_frame, text="Live Clock", command=self.show_clock,
+                   bg=BG_BUTTON_COLOR, width=12).pack(side=tk.LEFT, padx=5)
+
+        # --- DER NEUE F.F BUTTON (Sichtbar & Stolz) ---
+        # Wir nennen ihn "F.F Clock" oder "Universum"
+        FlatButton(nav_frame, text="F.F Clock", command=self.show_ff_clock,
                    bg=BG_BUTTON_COLOR, width=12).pack(side=tk.LEFT, padx=5)
 
         # --- CONTENT AREA ---
         self.content_area = tk.Frame(self.root, bg=BG_COLOR)
         self.content_area.pack(fill=tk.BOTH, expand=True)
 
-        # Instanzen erstellen (aber noch nicht packen)
+        # Instanzen erstellen
         self.editor_view = NibbleEditor(self.content_area, self.settings)
         self.palette_view = PaletteEditor(self.content_area, self.settings)
         self.layout_view = LayoutEditor(self.content_area, self.settings)
         self.profile_view = ProfileEditor(self.content_area, self.settings)
         self.clock_view = ClockDisplay(self.content_area, self.settings)
 
+        # Die neue FF View
+        self.ff_view = FFClockDisplay(self.content_area, self.settings)
+
         # Standard-Ansicht
         self.show_clock()
 
-        # --- HOTKEYS ---
-        # Wir binden alle Tastenanschläge an unsere Funktion
+        # Hotkeys
         self.root.bind("<Key>", self.handle_keypress)
 
     def handle_keypress(self, event):
@@ -131,10 +134,23 @@ class MainApp:
         self.clock_view.start()
         self.root.update_idletasks()
 
+    def show_ff_clock(self):
+        self._hide_all()
+        self.ff_view.pack(fill=tk.BOTH, expand=True)
+        self.ff_view.start()
+        self.root.update_idletasks()
+
     def _hide_all(self):
-        """Kleiner Helper um Code zu sparen"""
+        # 1. Normale Clock stoppen
         self.clock_view.stop()
         self.clock_view.pack_forget()
+
+        # 2. FF Clock stoppen (wichtig!)
+        if hasattr(self, 'ff_view'):
+            self.ff_view.stop()
+            self.ff_view.pack_forget()
+
+        # 3. Editoren ausblenden
         self.editor_view.pack_forget()
         self.palette_view.pack_forget()
         self.layout_view.pack_forget()
