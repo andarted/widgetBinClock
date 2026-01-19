@@ -5,8 +5,8 @@ from ui_shared import BG_COLOR
 # --- KONFIGURATION ---
 CELL_SIZE = 20
 GAP_SIZE = 4
-NIBBLE_GAP = 30  # Abstand zwischen den Nibbles im Layout
-STACK_GAP = NIBBLE_GAP  # <-- ÄNDERUNG: Gleicher Abstand wie zwischen den Nibbles
+NIBBLE_GAP = 30
+STACK_GAP = NIBBLE_GAP  # Gleicher Abstand wie im Layout
 
 # Epoch: 27.01.2026 UTC
 EPOCH_DATE = datetime(2026, 1, 27, 0, 0, 0, tzinfo=timezone.utc)
@@ -21,7 +21,6 @@ class FFClockDisplay(tk.Frame):
         self.canvas = tk.Canvas(self, bg=BG_COLOR, highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
-        # Info Label
         self.debug_label = tk.Label(self, text="", bg=BG_COLOR, fg="#444444", font=("Consolas", 12))
         self.debug_label.pack(side=tk.BOTTOM, pady=10)
 
@@ -34,7 +33,6 @@ class FFClockDisplay(tk.Frame):
         self.running = False
 
     def get_ff_value(self):
-        """Berechnet den signed 32-Bit Wert (UTC)"""
         now = datetime.now(timezone.utc)
         delta = now - EPOCH_DATE
         total_seconds = delta.total_seconds()
@@ -53,7 +51,6 @@ class FFClockDisplay(tk.Frame):
         self.after(50, self.update_loop)
 
     def get_layout_bounds(self, placements):
-        """Ermittelt die Ausmaße des Layouts (Bounding Box)"""
         if not placements: return 0, 0, 0, 0
         xs = [p["position"]["x"] for p in placements]
         ys = [p["position"]["y"] for p in placements]
@@ -62,7 +59,6 @@ class FFClockDisplay(tk.Frame):
     def render_clock(self, v32):
         self.canvas.delete("all")
 
-        # --- DATEN LADEN ---
         try:
             active_id = self.settings_manager.data.get("active_profileId", 0)
             if active_id >= len(self.settings_manager.data["profiles"]): active_id = 0
@@ -83,56 +79,57 @@ class FFClockDisplay(tk.Frame):
 
         if not layout_placements: return
 
-        # --- DYNAMISCHE GEOMETRIE BERECHNEN ---
         w = self.canvas.winfo_width()
         h = self.canvas.winfo_height()
 
-        # Bounding Box
         min_x, max_x, min_y, max_y = self.get_layout_bounds(layout_placements)
-
-        # Genutzte Rows/Cols
         cols_used = max_x - min_x + 1
         rows_used = max_y - min_y + 1
 
-        # Größen in Pixeln
         nibble_px = (4 * CELL_SIZE) + (3 * GAP_SIZE)
         block_width = (cols_used * nibble_px) + ((cols_used - 1) * NIBBLE_GAP)
         block_height = (rows_used * nibble_px) + ((rows_used - 1) * NIBBLE_GAP)
-
-        # Gesamthöhe des Stapels
         total_stack_height = (block_height * 2) + STACK_GAP
 
-        # Zentrierung
         start_x = (w - block_width) // 2
         start_y = (h - total_stack_height) // 2
 
         # --- ZEICHNEN ---
 
-        # Oberer Block (Tage)
+        # Oberer Block (Tage) -> Hier Flag is_day_counter=True
         high_16 = (v32 >> 16) & 0xFFFF
         self.draw_layout_block(start_x, start_y, high_16,
                                layout_placements, grid_design, palette_colors,
-                               offset_grid_x=min_x, offset_grid_y=min_y)
+                               offset_grid_x=min_x, offset_grid_y=min_y,
+                               is_day_counter=True)
 
-        # Unterer Block (Zeit)
+        # Unterer Block (Zeit) -> Flag False
         y_bot = start_y + block_height + STACK_GAP
         low_16 = v32 & 0xFFFF
         self.draw_layout_block(start_x, y_bot, low_16,
                                layout_placements, grid_design, palette_colors,
-                               offset_grid_x=min_x, offset_grid_y=min_y)
+                               offset_grid_x=min_x, offset_grid_y=min_y,
+                               is_day_counter=False)
 
-        # <-- ÄNDERUNG: Trennlinie entfernt
-
-    def draw_layout_block(self, px, py, val_16, placements, design, palette, offset_grid_x, offset_grid_y):
+    def draw_layout_block(self, px, py, val_16, placements, design, palette, offset_grid_x, offset_grid_y,
+                          is_day_counter=False):
         nibble_px = (4 * CELL_SIZE) + (3 * GAP_SIZE)
         step = nibble_px + NIBBLE_GAP
 
         for p in placements:
             nibble_id = p["nibbleId"]
-            # Trimmen auf 0,0
+
+            # --- COLOR MAPPING LOGIK (FINAL VARIANTE) ---
+            palette_nibble_id = nibble_id
+
+            if is_day_counter:
+                # Egal welches Nibble (3,2,1,0) im Tag-Block:
+                # Wir nehmen IMMER die Palette von Nibble 0 (LSB des Tickcounters)
+                palette_nibble_id = 0
+
+            # Koordinaten berechnen
             rel_grid_x = p["position"]["x"] - offset_grid_x
             rel_grid_y = p["position"]["y"] - offset_grid_y
-
             curr_x = px + rel_grid_x * step
             curr_y = py + rel_grid_y * step
 
@@ -141,13 +138,15 @@ class FFClockDisplay(tk.Frame):
             curr_design = design
             if mx or my: curr_design = self.transform_grid(design, mx, my)
 
+            # Wert extrahieren (mit original ID!)
             shift = nibble_id * 4
             nibble_val = (val_16 >> shift) & 0xF
 
-            self.draw_single_nibble(curr_x, curr_y, nibble_val, curr_design, nibble_id, palette)
+            # Zeichnen (mit mapped ID für Farbe!)
+            self.draw_single_nibble(curr_x, curr_y, nibble_val, curr_design, palette_nibble_id, palette)
 
     def draw_single_nibble(self, ox, oy, val, grid, nibble_id, palette):
-        # (Exakt wie vorher, keine Änderung nötig)
+        # nibble_id hier ist bereits das gemappte (palette_nibble_id)
         def is_active(gid):
             if gid is None or gid == -1: return False
             return (val >> gid) & 1
@@ -159,6 +158,7 @@ class FFClockDisplay(tk.Frame):
             except:
                 return "#FF0000"
 
+        # (Restlicher Zeichen-Code)
         for r in range(4):
             for c in range(4):
                 gid = grid[r][c]
