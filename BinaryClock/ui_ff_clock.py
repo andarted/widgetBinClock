@@ -6,7 +6,7 @@ from ui_shared import BG_COLOR
 CELL_SIZE = 20
 GAP_SIZE = 4
 NIBBLE_GAP = 30
-STACK_GAP = NIBBLE_GAP  # Gleicher Abstand wie im Layout
+STACK_GAP = NIBBLE_GAP
 
 # Epoch: 27.01.2026 UTC
 EPOCH_DATE = datetime(2026, 1, 27, 0, 0, 0, tzinfo=timezone.utc)
@@ -21,7 +21,8 @@ class FFClockDisplay(tk.Frame):
         self.canvas = tk.Canvas(self, bg=BG_COLOR, highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
-        self.debug_label = tk.Label(self, text="", bg=BG_COLOR, fg="#444444", font=("Consolas", 12))
+        # Info Label (angepasst für mehr Infos)
+        self.debug_label = tk.Label(self, text="", bg=BG_COLOR, fg="#666666", font=("Consolas", 10))
         self.debug_label.pack(side=tk.BOTTOM, pady=10)
 
     def start(self):
@@ -32,21 +33,45 @@ class FFClockDisplay(tk.Frame):
     def stop(self):
         self.running = False
 
-    def get_ff_value(self):
-        now = datetime.now(timezone.utc)
-        delta = now - EPOCH_DATE
+    def get_ff_value_and_info(self):
+        """
+        Berechnet den F.F Wert und gibt Infos zur lokalen Zeitzone zurück.
+        """
+        # 1. Aktuelle Zeit in UTC (für die Berechnung)
+        utc_now = datetime.now(timezone.utc)
+
+        # 2. Aktuelle Zeit lokal (für die Anzeige der Zeitzone)
+        local_now = datetime.now().astimezone()
+
+        # Berechnung F.F Wert
+        delta = utc_now - EPOCH_DATE
         total_seconds = delta.total_seconds()
         raw_val = (total_seconds / 86400.0) * 65536.0
-        return int(raw_val)
+
+        # Zeitzonen-String bauen (z.B. "UTC+01:00")
+        tz_name = local_now.strftime("%Z")  # z.B. CET oder CEST
+        utc_offset = local_now.strftime("%z")  # z.B. +0100
+        # Formatieren für schönere Lesbarkeit: +01:00
+        if len(utc_offset) == 5:
+            utc_offset = f"UTC{utc_offset[:3]}:{utc_offset[3:]}"
+        else:
+            utc_offset = "UTC"
+
+        return int(raw_val), utc_offset
 
     def update_loop(self):
         if not self.running: return
 
-        v32 = self.get_ff_value()
+        # Werte holen
+        v32, tz_info = self.get_ff_value_and_info()
+
+        # Zeichnen
         self.render_clock(v32)
 
+        # Label Update mit Zeitzonen-Info
+        # Zeigt: F.F Wert | (Lokale Zeitzone erkannt)
         display_val = v32 & 0xFFFFFFFF
-        self.debug_label.config(text=f"F.F: {display_val:08X}")
+        self.debug_label.config(text=f"F.F: {display_val:08X}  (Local: {tz_info})")
 
         self.after(50, self.update_loop)
 
@@ -96,14 +121,14 @@ class FFClockDisplay(tk.Frame):
 
         # --- ZEICHNEN ---
 
-        # Oberer Block (Tage) -> Hier Flag is_day_counter=True
+        # Oberer Block (Tage) -> Palette von Nibble 0 erzwingen (durch Mapping)
         high_16 = (v32 >> 16) & 0xFFFF
         self.draw_layout_block(start_x, start_y, high_16,
                                layout_placements, grid_design, palette_colors,
                                offset_grid_x=min_x, offset_grid_y=min_y,
                                is_day_counter=True)
 
-        # Unterer Block (Zeit) -> Flag False
+        # Unterer Block (Zeit)
         y_bot = start_y + block_height + STACK_GAP
         low_16 = v32 & 0xFFFF
         self.draw_layout_block(start_x, y_bot, low_16,
@@ -119,15 +144,12 @@ class FFClockDisplay(tk.Frame):
         for p in placements:
             nibble_id = p["nibbleId"]
 
-            # --- COLOR MAPPING LOGIK (FINAL VARIANTE) ---
+            # --- COLOR MAPPING ---
             palette_nibble_id = nibble_id
-
             if is_day_counter:
-                # Egal welches Nibble (3,2,1,0) im Tag-Block:
-                # Wir nehmen IMMER die Palette von Nibble 0 (LSB des Tickcounters)
+                # Tageszähler nutzt immer Palette von Nibble 0 (LSB Time)
                 palette_nibble_id = 0
 
-            # Koordinaten berechnen
             rel_grid_x = p["position"]["x"] - offset_grid_x
             rel_grid_y = p["position"]["y"] - offset_grid_y
             curr_x = px + rel_grid_x * step
@@ -138,15 +160,12 @@ class FFClockDisplay(tk.Frame):
             curr_design = design
             if mx or my: curr_design = self.transform_grid(design, mx, my)
 
-            # Wert extrahieren (mit original ID!)
             shift = nibble_id * 4
             nibble_val = (val_16 >> shift) & 0xF
 
-            # Zeichnen (mit mapped ID für Farbe!)
             self.draw_single_nibble(curr_x, curr_y, nibble_val, curr_design, palette_nibble_id, palette)
 
     def draw_single_nibble(self, ox, oy, val, grid, nibble_id, palette):
-        # nibble_id hier ist bereits das gemappte (palette_nibble_id)
         def is_active(gid):
             if gid is None or gid == -1: return False
             return (val >> gid) & 1
@@ -158,7 +177,6 @@ class FFClockDisplay(tk.Frame):
             except:
                 return "#FF0000"
 
-        # (Restlicher Zeichen-Code)
         for r in range(4):
             for c in range(4):
                 gid = grid[r][c]
