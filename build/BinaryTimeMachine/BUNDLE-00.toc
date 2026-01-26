@@ -1,0 +1,3 @@
+([('BinaryTimeMachine',
+   '/Users/florianfischer/Documents/PythonProject/widgetBinClock/dist/BinaryTimeMachine',
+   'EXECUTABLE')],)

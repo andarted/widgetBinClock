@@ -1,0 +1,3 @@
+([('binClockQ19',
+   '/Users/florianfischer/Documents/PythonProject/widgetBinClock/dist/binClockQ19',
+   'EXECUTABLE')],)
