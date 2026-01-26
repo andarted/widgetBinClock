@@ -41,7 +41,8 @@ class FFClockDisplay(tk.Frame):
         utc_now = datetime.now(timezone.utc)
 
         # 2. Aktuelle Zeit lokal (für die Anzeige der Zeitzone)
-        local_now = datetime.now().astimezone()
+        # local_now = datetime.now().astimezone()
+        local_now = utc_now                         # !!! SPECIAL TEMP EPOCH CELEBRATION VARIATION !!!
 
         # Berechnung F.F Wert
         delta = utc_now - EPOCH_DATE
