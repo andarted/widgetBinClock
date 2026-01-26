@@ -9,11 +9,7 @@ NIBBLE_GAP = 30
 STACK_GAP = NIBBLE_GAP
 
 # Epoch: 27.01.2026 UTC
-# EPOCH_DATE = datetime(2026, 1, 27, 0, 0, 0, tzinfo=timezone.utc)
-
-# Schummel-Modus für 23:00 CET Party
-EPOCH_DATE = datetime(2026, 1, 26, 22, 0, 0, tzinfo=timezone.utc)
-
+EPOCH_DATE = datetime(2026, 1, 27, 0, 0, 0, tzinfo=timezone.utc)
 
 class FFClockDisplay(tk.Frame):
     def __init__(self, parent, settings_manager):
@@ -44,8 +40,7 @@ class FFClockDisplay(tk.Frame):
         utc_now = datetime.now(timezone.utc)
 
         # 2. Aktuelle Zeit lokal (für die Anzeige der Zeitzone)
-        # local_now = datetime.now().astimezone()
-        local_now = utc_now                         # !!! SPECIAL TEMP EPOCH CELEBRATION VARIATION !!!
+        local_now = datetime.now().astimezone()
 
         # Berechnung F.F Wert
         delta = utc_now - EPOCH_DATE
