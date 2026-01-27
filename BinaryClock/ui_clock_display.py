@@ -42,9 +42,25 @@ class ClockDisplay(tk.Frame):
 
         v16 = int((ms_now * total_units) / ms_per_day)
 
+        # --- NEU: Zeitzonen-String bauen ---
+        local_now = datetime.now().astimezone()
+        utc_offset = local_now.strftime("%z")  # z.B. "+0100"
+
+        # --- --- Dieser Block ergänzt "UTC+01:00";
+        #                   self.debug_label muss aber angepasst werden     --- --- /|\_/|\_/|\
+        # if len(utc_offset) == 5:
+        #     tz_str = f"UTC{utc_offset[:3]}:{utc_offset[3:]}"
+        # else:
+        #     tz_str = "UTC"
+        # -----------------------------------
+
         # 2. Zeichnen
         self.render_clock(v16)
-        self.debug_label.config(text=f"VALUE: 0x{v16:04X} ({v16})")
+
+        # Label Update: Zeigt jetzt Hex-Wert UND lokale Zeitzone
+        # self.debug_label.config(text=f"VALUE: 0x{v16:04X} ({tz_str})")    --- --- \|/_\|/_\|/
+        # self.debug_label.config(text=f"VALUE: 0x{v16:04X}")
+        self.debug_label.config(text=f"0x{v16:04X}") # ohne "VALUE: "
 
         # 3. Smart Sleep
         ms_per_tick = ms_per_day / total_units

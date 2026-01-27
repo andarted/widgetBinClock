@@ -32,45 +32,33 @@ class FFClockDisplay(tk.Frame):
     def stop(self):
         self.running = False
 
-    def get_ff_value_and_info(self):
+    def get_ff_value(self):
         """
-        Berechnet den F.F Wert und gibt Infos zur lokalen Zeitzone zurück.
+        Berechnet den F.F Wert rein in UTC.
         """
         # 1. Aktuelle Zeit in UTC (für die Berechnung)
         utc_now = datetime.now(timezone.utc)
-
-        # 2. Aktuelle Zeit lokal (für die Anzeige der Zeitzone)
-        local_now = datetime.now().astimezone()
 
         # Berechnung F.F Wert
         delta = utc_now - EPOCH_DATE
         total_seconds = delta.total_seconds()
         raw_val = (total_seconds / 86400.0) * 65536.0
 
-        # Zeitzonen-String bauen (z.B. "UTC+01:00")
-        tz_name = local_now.strftime("%Z")  # z.B. CET oder CEST
-        utc_offset = local_now.strftime("%z")  # z.B. +0100
-        # Formatieren für schönere Lesbarkeit: +01:00
-        if len(utc_offset) == 5:
-            utc_offset = f"UTC{utc_offset[:3]}:{utc_offset[3:]}"
-        else:
-            utc_offset = "UTC"
-
-        return int(raw_val), utc_offset
+        return int(raw_val)
 
     def update_loop(self):
         if not self.running: return
 
         # Werte holen
-        v32, tz_info = self.get_ff_value_and_info()
+        v32 = self.get_ff_value()
 
         # Zeichnen
         self.render_clock(v32)
 
         # Label Update mit Zeitzonen-Info
-        # Zeigt: F.F Wert | (Lokale Zeitzone erkannt)
+        # Zeigt: F.F Wert | (Statischer Hinweis auf UTC)
         display_val = v32 & 0xFFFFFFFF
-        self.debug_label.config(text=f"F.F: {display_val:08X}  (Local: {tz_info})")
+        self.debug_label.config(text=f"F.F: {display_val:08X} \n (caution: UTC)")
 
         self.after(50, self.update_loop)
 
